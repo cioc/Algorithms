@@ -64,6 +64,7 @@ bfs(graph *g, int startnode, void (*fn)(int *, void *), void *args) {
       }
     }
     queue = *iterqueue;
+    *iterqueue = NULL;
   } while (queue != NULL);
   free(iterqueue);
 } //end bfs

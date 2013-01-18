@@ -1,4 +1,4 @@
-cflags = -c -std=gnu99 -Werror
+cflags = -c -g -std=gnu99 -Werror
 example_names = list_test bfs_test
 
 all: algorithms
