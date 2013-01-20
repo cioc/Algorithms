@@ -18,7 +18,11 @@ main (int argc, char **argv) {
   g = adjacency(g, 2, 3);
   g = adjacency(g, 2, 4);
   g = adjacency(g, 3, 6);
+  
+  printf("bfs\n");
   bfs(g, 0, printnode, NULL);
+  printf("dfs\n");
+  dfs(g, 0, printnode, NULL);
   exit(0);
 }
 

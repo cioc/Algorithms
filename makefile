@@ -1,15 +1,15 @@
 cflags = -c -g -std=gnu99 -Werror
-example_names = list_test bfs_test
+example_names = list_test graph_search_test
 
 all: algorithms
 
-algorithms: list_test bfs_test
+algorithms: list_test graph_search_test
 
-bfs_test: list.o graph.o bfs_test.o
-	gcc list.o graph.o bfs_test.o -o bfs_test
+graph_search_test: list.o graph.o graph_search.o
+	gcc list.o graph.o graph_search.o -o graph_search_test
 
-bfs_test.o: bfs_test.c
-	gcc $(cflags) bfs_test.c
+graph_search.o: graph_search.c
+	gcc $(cflags) graph_search.c
 
 graph.o: graph.c
 	gcc $(cflags) graph.c

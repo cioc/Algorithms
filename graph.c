@@ -69,6 +69,27 @@ bfs(graph *g, int startnode, void (*fn)(int *, void *), void *args) {
   free(iterqueue);
 } //end bfs
 
+void
+dfs(graph *g, int startnode, void (*fn)(int *, void *), void *args) {
+  for (int i = 0; i < g->n; ++i) {
+    g->visited[i] = false;
+  }
+ 
+  listelem *stack;
+  stack = NULL;
+  
+  int t = startnode;
+  listelem *fi = newitem((void *)&t);
+  stack = push(stack, fi);
+  do {
+    int *i = (int *)pop(&stack);
+    if (!g->visited[*i]) {
+      (*fn)(i, args);
+      g->visited[*i] = true;
+      apply(g->vertices[*i], append, (void *)&stack);
+    }
+  } while (stack != NULL);
+}
 
 //wants a string like this:
 //V,A,A,A... V,A,A,...
