@@ -9,35 +9,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-
-typedef enum {
-  UNDIRECTED = 0,
-  DIRECTED = 1
-} GRAPH_TYPE;
-
-
-typedef struct adjacency adjacency;
-
-struct adjacency {
-  int endpoint;
-  double weight;
-  adjacency *next; //for lists
-};
-
-typedef struct vertex vertex;
-
-struct vertex {
-  int v;
-  vertex *next;
-};
-
-typedef struct adjl_graph adjl_graph;
-
-struct adjl_graph {
-  vertex *vertices;
-  adjacency **adjacencies;
-  int max;
-};
+#include "adjacency_list.h"
 
 vertex *
 init_vertex(int v) {
@@ -147,4 +119,18 @@ load_adjl_graph(const char *path, int max_nodes, GRAPH_TYPE type) {
   close(fd);
   munmap(t,len); 
   return g;
+}
+
+void
+print_adjl_graph(adjl_graph *g) {
+  for (int i = 0; i < g->max; ++i) {
+    if (g->adjacencies[i] != NULL) {
+      adjacency *curr = g->adjacencies[i];
+      printf("%i: ", i);
+      for (; curr != NULL; curr = curr->next) {
+        printf("(%d, w: %lf) ", curr->endpoint, curr->weight); 
+      }
+      printf("\n");
+    }
+  }
 }
