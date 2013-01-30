@@ -42,7 +42,11 @@ init_adjl_graph(int max_nodes) {
 void 
 add_vertex(adjl_graph *g, int v) {
   bool new = false;
-  vertex *curr;
+  vertex *curr = g->vertices;
+  if (curr == NULL) {
+    g->vertices = init_vertex(v);
+    return;
+  }
   for (curr = g->vertices; curr->next != NULL; curr = curr->next) {
     if (curr->v == v) {
       new = true;
@@ -59,21 +63,24 @@ void
 edge(adjl_graph *g, int start, int end, double weight, GRAPH_TYPE type) {
   add_vertex(g, start);
   add_vertex(g, end);
+  
   adjacency *adj = init_adjacency(end, weight);
   adjacency *curr = g->adjacencies[start];
+  
   if (curr == NULL) {
-    curr = adj;
+    g->adjacencies[start] = adj;
   }
   else {
     for (; curr->next != NULL; curr = curr->next)
       ;
     curr->next = adj;
   }
+  
   if (type == UNDIRECTED) {
     curr = g->adjacencies[end];
     adj = init_adjacency(start, weight);
     if (curr == NULL) {
-      curr = adj;
+      g->adjacencies[end] = adj;
     }
     else {
       for (; curr->next != NULL; curr = curr->next)
@@ -91,31 +98,33 @@ load_adjl_graph(const char *path, int max_nodes, GRAPH_TYPE type) {
   if (fd < 2) {
     return NULL;
   } 
- 
   adjl_graph *g = init_adjl_graph(max_nodes);
 
   struct stat statbuf;
   fstat(fd, &statbuf);
   int len = statbuf.st_size;
  
-  void *t = mmap(NULL, len, PROT_READ, MAP_PRIVATE, fd, 0);
+  void *t = mmap(NULL, len, PROT_WRITE, MAP_PRIVATE, fd, 0);
   if (t == NULL) {
     close(fd);
     return NULL;
   }
   char *str = (char *)t;
-  
+   
   char *curr;
   curr = strtok(str, "\r\n");
+  
   while (curr != NULL) {
     int start;
     int end;
     double weight;
     sscanf(curr, "%d,%d,%lf", &start, &end, &weight);
+    
     edge(g, start, end, weight, type);        
+    
     curr = strtok(NULL, "\r\n");
-  }
-
+    
+  } 
   close(fd);
   munmap(t,len); 
   return g;
@@ -123,6 +132,7 @@ load_adjl_graph(const char *path, int max_nodes, GRAPH_TYPE type) {
 
 void
 print_adjl_graph(adjl_graph *g) {
+  printf("GRAPH:\n");
   for (int i = 0; i < g->max; ++i) {
     if (g->adjacencies[i] != NULL) {
       adjacency *curr = g->adjacencies[i];
@@ -131,6 +141,6 @@ print_adjl_graph(adjl_graph *g) {
         printf("(%d, w: %lf) ", curr->endpoint, curr->weight); 
       }
       printf("\n");
-    }
+    }  
   }
 }
