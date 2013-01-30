@@ -11,9 +11,21 @@
 #include <fcntl.h>
 #include "adjacency_list.h"
 
+void *emalloc(ssize_t s); //inspired by kernighan
+
+void *
+emalloc(ssize_t s) {
+  void *o = malloc(s);
+  if (o == NULL) {
+    fprintf(stderr, "ran out of memory. sorry.\n");
+    exit(1);
+  }
+  return o;
+}
+
 vertex *
 init_vertex(int v) {
-  vertex *o = malloc(sizeof(vertex));
+  vertex *o = emalloc(sizeof(vertex));
   o->v = v;
   o->next = NULL;
   return o;
@@ -21,18 +33,19 @@ init_vertex(int v) {
 
 adjacency *
 init_adjacency(int endpoint, double weight) {
-  adjacency *o = malloc(sizeof(adjacency));
+  adjacency *o = emalloc(sizeof(adjacency));
   o->endpoint = endpoint;
   o->weight = weight;
+  o->next = NULL;
   return o;
 }
 
 adjl_graph*
 init_adjl_graph(int max_nodes) {
-  adjl_graph *o = malloc(sizeof(adjl_graph));
+  adjl_graph *o = emalloc(sizeof(adjl_graph));
   o->max = max_nodes;
   o->vertices = NULL;
-  o->adjacencies = malloc(sizeof(adjacency *) * max_nodes);
+  o->adjacencies = emalloc(sizeof(adjacency *) * max_nodes);
   for (int i = 0; i < max_nodes; ++i) {
     o->adjacencies[i] = NULL; 
   }
@@ -143,4 +156,26 @@ print_adjl_graph(adjl_graph *g) {
       printf("\n");
     }  
   }
+}
+
+void
+free_adjl_graph(adjl_graph *g) {
+  vertex *v_curr = g->vertices;
+  while (v_curr != NULL) {
+    vertex *v_next = v_curr->next;
+    free(v_curr);
+    v_curr = v_next; 
+  }
+  
+  for (int i = 0; i < g->max; ++i) {
+    adjacency *adj_curr = g->adjacencies[i];
+    while (adj_curr != NULL) {
+      adjacency *adj_next = adj_curr->next;
+      free(adj_curr);
+      adj_curr = adj_next;
+    }
+  }
+  
+  free(g->adjacencies);
+  free(g);
 }
