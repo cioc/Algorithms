@@ -6,8 +6,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
 
-enum {
+typedef enum {
   UNDIRECTED = 0,
   DIRECTED = 1
 } GRAPH_TYPE;
@@ -36,7 +39,7 @@ struct adjl_graph {
   int max;
 };
 
-vertex *v
+vertex *
 init_vertex(int v) {
   vertex *o = malloc(sizeof(vertex));
   o->v = v;
@@ -54,10 +57,10 @@ init_adjacency(int endpoint, double weight) {
 
 adjl_graph*
 init_adjl_graph(int max_nodes) {
-  adjacency *o = malloc(sizeof(adjl_graph));
+  adjl_graph *o = malloc(sizeof(adjl_graph));
   o->max = max_nodes;
   o->vertices = NULL;
-  p->adjacencies = malloc(sizeof(adjacency *) * max_nodes);
+  o->adjacencies = malloc(sizeof(adjacency *) * max_nodes);
   for (int i = 0; i < max_nodes; ++i) {
     o->adjacencies[i] = NULL; 
   }
@@ -65,7 +68,7 @@ init_adjl_graph(int max_nodes) {
 }
 
 void 
-vertex(adjl_graph *g, int v) {
+add_vertex(adjl_graph *g, int v) {
   bool new = false;
   vertex *curr;
   for (curr = g->vertices; curr->next != NULL; curr = curr->next) {
@@ -75,15 +78,15 @@ vertex(adjl_graph *g, int v) {
     }
   }
   if (new) {
-    vertex *v = init_vertex(v);
-    curr->next = v;       
+    vertex *vt = init_vertex(v);
+    curr->next = vt;       
   }
 }
 
 void
 edge(adjl_graph *g, int start, int end, double weight, GRAPH_TYPE type) {
-  vertex(g, start);
-  vertex(g, end);
+  add_vertex(g, start);
+  add_vertex(g, end);
   adjacency *adj = init_adjacency(end, weight);
   adjacency *curr = g->adjacencies[start];
   if (curr == NULL) {
@@ -94,7 +97,7 @@ edge(adjl_graph *g, int start, int end, double weight, GRAPH_TYPE type) {
       ;
     curr->next = adj;
   }
-  if (type == UNIDIRECTED) {
+  if (type == UNDIRECTED) {
     curr = g->adjacencies[end];
     adj = init_adjacency(start, weight);
     if (curr == NULL) {
@@ -110,14 +113,14 @@ edge(adjl_graph *g, int start, int end, double weight, GRAPH_TYPE type) {
 
 //i wanted to play with memory mapping
 //NOT THREAD SAFE - see strtok
-graph *
+adjl_graph *
 load_adjl_graph(const char *path, int max_nodes, GRAPH_TYPE type) {
   int fd = open(path, O_RDONLY);
   if (fd < 2) {
     return NULL;
   } 
  
-  graph *g = init_adjl_graph(max_nodes);
+  adjl_graph *g = init_adjl_graph(max_nodes);
 
   struct stat statbuf;
   fstat(fd, &statbuf);
@@ -136,8 +139,8 @@ load_adjl_graph(const char *path, int max_nodes, GRAPH_TYPE type) {
     int start;
     int end;
     double weight;
-    sscanf(curr, "%d,%d,%Lf", &start, &end, &weight);
-    edge(f, start, end, weight, type);        
+    sscanf(curr, "%d,%d,%lf", &start, &end, &weight);
+    edge(g, start, end, weight, type);        
     curr = strtok(NULL, "\r\n");
   }
 
